@@ -38,13 +38,14 @@ public class Familienverwaltung {
 
         try {
             PreparedStatement ps = connection.prepareStatement(
-                    "INSERT INTO familie (vorname, geschlecht, geburtsdatum, svnummer, volljahrig) VALUES (?,?,?,?,?)");
+                    "INSERT INTO familie2 (id, vorname, geschlecht, geburtsdatum, svnummer, volljahrig) VALUES (?,?,?,?,?,?)");
             // werte setzen
-            ps.setString(1, mitglied.getVorname());
-            ps.setString(2, mitglied.getGeschlecht());
-            ps.setString(3, mitglied.getGeburtsdatum());
-            ps.setString(4, mitglied.getSvNummer());
-            ps.setBoolean(5, mitglied.isVolljahrig());
+            ps.setInt(1, mitglied.getId());
+            ps.setString(2, mitglied.getVorname());
+            ps.setString(3, mitglied.getGeschlecht());
+            ps.setString(4, mitglied.getGeburtsdatum());
+            ps.setString(5, mitglied.getSvNummer());
+            ps.setInt(6, mitglied.isVolljahrig());
 
             // query
             ps.executeUpdate();
@@ -58,22 +59,23 @@ public class Familienverwaltung {
         }
     }
 
-    private Optional<Mitglied> getMitgliedBySVNr(String svNummer) throws SQLException {
+    private Optional<Mitglied> getMitgliedByID(int id) throws SQLException {
 
-        PreparedStatement ps = connection.prepareStatement("SELECT svnummer FROM familie WHERE svnummer = ?");
+        PreparedStatement ps = connection.prepareStatement("SELECT * FROM familie2 WHERE id = ?");
         //query
         try (ps) {
-            ps.setString(4, svNummer);
+            ps.setInt(1, id);
             ResultSet resultSet = ps.executeQuery();
             if (resultSet.next()) {
                 // Einzelne Werte vom Datensatz holen
+                int idf = resultSet.getInt("id");
                 String vorname = resultSet.getString("vorname");
                 String sex = resultSet.getString("geschlecht");
                 String dob = resultSet.getString("geburtsdatum");
                 String svN = resultSet.getString("svnummer");
-                boolean vollj = resultSet.getBoolean("volljahrig");
+                int vollj = resultSet.getInt("volljahrig");
                 // Daraus ein Mitglied Objekt erstellen
-                Mitglied mitglied = new Mitglied(vorname, sex, dob, svN, vollj);
+                Mitglied mitglied = new Mitglied(idf, vorname, sex, dob, svN, vollj);
                 return Optional.of(mitglied);
             }
         }
@@ -83,7 +85,7 @@ public class Familienverwaltung {
 
     private List<Mitglied> getAllMitgliederInDB() throws SQLException {
 
-        PreparedStatement ps = connection.prepareStatement("SELECT vorname, geschlecht, geburtsdatum, svnummer, volljahrig FROM familie");
+        PreparedStatement ps = connection.prepareStatement("SELECT id, vorname, geschlecht, geburtsdatum, svnummer, volljahrig FROM familie2");
         //query
         ResultSet resultSet = ps.executeQuery();
         // Liste für Rückgabe
@@ -91,20 +93,20 @@ public class Familienverwaltung {
         // Zeile für Zeile result abarbeiten solange es ein next gibt
         while (resultSet.next()) {
             // Einzelne Werte vom Datensatz holen
+            int id = resultSet.getInt("id");
             String vorname = resultSet.getString("vorname");
             String sex = resultSet.getString("geschlecht");
             String dob = resultSet.getString("geburtsdatum");
             String svN = resultSet.getString("svnummer");
-            boolean vollj = resultSet.getBoolean("volljahrig");
+            int vollj = resultSet.getInt("volljahrig");
             // Daraus ein Mitglied Objekt erstellen
-            Mitglied mitglied = new Mitglied(vorname, sex, dob, svN, vollj);
+            Mitglied mitglied = new Mitglied(id, vorname, sex, dob, svN, vollj);
             // dieses mitglied in liste result einfügen
             result.add(mitglied);
         }
         ps.close();
         return result;
     }
-
 
     private void verwaltung() throws SQLException {
 
@@ -119,10 +121,10 @@ public class Familienverwaltung {
 
         } else if (select == 2) {
 
-            System.out.println("Bitte die SV-Nummer 4-stellig eingeben: ");
-            String svNSELECT = scanner.nextLine();
+            System.out.println("Bitte die ID eingben: ");
+            int idSELECT = scanner.nextInt();
             try {
-                Optional<Mitglied> optionalMitglied = getMitgliedBySVNr(svNSELECT);
+                Optional<Mitglied> optionalMitglied = getMitgliedByID(idSELECT);
                 if (optionalMitglied.isPresent()) {
                     Mitglied mitglied = optionalMitglied.get();
                     print(mitglied);
@@ -132,15 +134,15 @@ public class Familienverwaltung {
                     System.exit(0);
                 }
             } catch (SQLException ex) {
-                System.out.println("Fehler beim Finden des Mitglieds " + ex.getMessage());
+                System.out.println("Fehler beim Finden des Mitglieds! " + ex.getMessage());
+                ex.printStackTrace();
             }
         } else if (select == 3) {
             try {
                 List<Mitglied> mitglied = getAllMitgliederInDB();
-                mitglied.forEach(m -> {
+                for (Mitglied m : mitglied) {
                     print(m);
-
-                });
+                }
                 System.exit(0);
             } catch (SQLException ex) {
                 System.out.println("Fehler beim Auslesen aller User " + ex.getMessage());
@@ -168,10 +170,12 @@ public class Familienverwaltung {
 
     public void generateMitglied() {
 
-        boolean volljahrig;
         int i;
         for (i = 0; i < 1; i++) {
             Scanner scanner = new Scanner(System.in);
+            System.out.println("ID: ");
+            int id = scanner.nextInt();
+            scanner.nextLine();
             System.out.println("Vorname: ");
             String vorname = scanner.nextLine();
             System.out.println("Geschlecht: ");
@@ -180,10 +184,9 @@ public class Familienverwaltung {
             String dob = scanner.nextLine();
             System.out.println("SV-Nummer (4-stellig) eingeben: ");
             String svN = scanner.nextLine();
-            System.out.println("Ist das Mitglied volljährig? (1 für Ja, 2 für Nein): ");
-            int vj = scanner.nextInt();
-            volljahrig = vj == 1;
-            Mitglied mitglied = new Mitglied(vorname, sex, dob, svN, volljahrig);
+            System.out.println("Ist das Mitglied volljährig? (1 für Ja, 0 für Nein): ");
+            int vollj = scanner.nextInt();
+            Mitglied mitglied = new Mitglied(id, vorname, sex, dob, svN, vollj);
             insertMitglied(mitglied);
         }
     }
