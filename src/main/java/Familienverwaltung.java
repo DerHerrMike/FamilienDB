@@ -1,5 +1,6 @@
 import com.mysql.cj.jdbc.MysqlDataSource;
 import model.Mitglied;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -110,44 +111,40 @@ public class Familienverwaltung {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Willkommen in der Familienverwaltung!");
         System.out.println();
-        System.out.println("Bitte Auswahl treffen: 1 Mitglied hinzufügen, 2 alle Mitglieder ausgeben, 3 Mitglied über SV-Nummer suchen: ");
+        System.out.println("Bitte Auswahl treffen: 1 Mitglied hinzufügen, 2 Mitglied über SV-Nummer suchen, 3 alle Mitglieder ausgeben: ");
         int select = scanner.nextInt();
-        switch (select) {
-            case 1:
-                generateMitglied();
-                break;
-            case 2:
-                try {
-                    List<Mitglied> mitglied = getAllMitgliederInDB();
-                    for (Mitglied m : mitglied) {
-                        print(m);
-                        break;
-                    }
-                } catch (SQLException ex) {
-                    System.out.println("Fehler beim Auslesen aller User " + ex.getMessage());
-                    break;
-                }
+        scanner.nextLine();
+        if (select == 1) {
+            generateMitglied();
 
-            case 3:
-                System.out.println("Bitte die SV-Nummer 4-stellig eingeben: ");
-                String svNSELECT = scanner.nextLine();
-                try {
-                    Optional<Mitglied> optionalMitglied = getMitgliedBySVNr(svNSELECT);
-                    if (optionalMitglied.isPresent()) {
-                        Mitglied mitglied = optionalMitglied.get();
-                        print(mitglied);
-                        break;
-                    } else {
-                        System.out.println("Mitglied nicht gefunden!");
-                        break;
-                    }
-                } catch (SQLException ex) {
-                    System.out.println("Fehler beim Finden des Mitglieds " + ex.getMessage());
-                    break;
+        } else if (select == 2) {
+
+            System.out.println("Bitte die SV-Nummer 4-stellig eingeben: ");
+            String svNSELECT = scanner.nextLine();
+            try {
+                Optional<Mitglied> optionalMitglied = getMitgliedBySVNr(svNSELECT);
+                if (optionalMitglied.isPresent()) {
+                    Mitglied mitglied = optionalMitglied.get();
+                    print(mitglied);
+                } else {
+                    System.out.println("Mitglied nicht gefunden!");
                 }
-            default:
-                System.out.println("Keine mögliche Auswahl getroffen. Das Programm wird beendet!");
-                System.exit(0);
+            } catch (SQLException ex) {
+                System.out.println("Fehler beim Finden des Mitglieds " + ex.getMessage());
+            }
+        } else if (select == 3) {
+            try {
+                List<Mitglied> mitglied = getAllMitgliederInDB();
+                for (Mitglied m : mitglied) {
+                    print(m);
+                }
+            } catch (SQLException ex) {
+                System.out.println("Fehler beim Auslesen aller User " + ex.getMessage());
+                return;
+            }
+        } else {
+            System.out.println("Keine mögliche Auswahl getroffen. Das Programm wird beendet!");
+            System.exit(0);
         }
     }
 
@@ -182,11 +179,7 @@ public class Familienverwaltung {
             String svN = scanner.nextLine();
             System.out.println("Ist das Mitglied volljährig? (1 für Ja, 2 für Nein): ");
             int vj = scanner.nextInt();
-            if (vj == 1) {
-                volljahrig = true;
-            } else {
-                volljahrig = false;
-            }
+            volljahrig = vj == 1;
             Mitglied mitglied = new Mitglied(vorname, sex, svN, volljahrig, dob);
             insertMitglied(mitglied);
         }
