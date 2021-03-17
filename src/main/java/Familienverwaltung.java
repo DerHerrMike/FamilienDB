@@ -38,7 +38,7 @@ public class Familienverwaltung {
 
         try {
             PreparedStatement ps = connection.prepareStatement(
-                    "INSERT INTO familie (id, vorname, geschlecht, geburtsdatum, svnummer, volljahrig) VALUES (?,?,?,?,?)");
+                    "INSERT INTO familie2 (id, vorname, geschlecht, geburtsdatum, svnummer, volljahrig) VALUES (?,?,?,?,?,?)");
             // werte setzen
             ps.setInt(1, mitglied.getId());
             ps.setString(2, mitglied.getVorname());
@@ -61,21 +61,21 @@ public class Familienverwaltung {
 
     private Optional<Mitglied> getMitgliedByID(int id) throws SQLException {
 
-        PreparedStatement ps = connection.prepareStatement("SELECT id FROM familie WHERE id = ?");
+        PreparedStatement ps = connection.prepareStatement("SELECT * FROM familie2 WHERE id = ?");
         //query
         try (ps) {
             ps.setInt(1, id);
             ResultSet resultSet = ps.executeQuery();
             if (resultSet.next()) {
                 // Einzelne Werte vom Datensatz holen
-                int iddb = resultSet.getInt(1);
-                String vorname = resultSet.getNString(2);
-                String sex = resultSet.getNString(3);
-                String dob = resultSet.getNString(4);
-                String svN = resultSet.getNString(5);
-                int vollj = resultSet.getInt(6);
+                int idf = resultSet.getInt("id");
+                String vorname = resultSet.getString("vorname");
+                String sex = resultSet.getString("geschlecht");
+                String dob = resultSet.getString("geburtsdatum");
+                String svN = resultSet.getString("svnummer");
+                int vollj = resultSet.getInt("volljahrig");
                 // Daraus ein Mitglied Objekt erstellen
-                Mitglied mitglied = new Mitglied(iddb, vorname, sex, dob, svN, vollj);
+                Mitglied mitglied = new Mitglied(idf, vorname, sex, dob, svN, vollj);
                 return Optional.of(mitglied);
             }
         }
@@ -85,7 +85,7 @@ public class Familienverwaltung {
 
     private List<Mitglied> getAllMitgliederInDB() throws SQLException {
 
-        PreparedStatement ps = connection.prepareStatement("SELECT id, vorname, geschlecht, geburtsdatum, svnummer, volljahrig FROM familie");
+        PreparedStatement ps = connection.prepareStatement("SELECT id, vorname, geschlecht, geburtsdatum, svnummer, volljahrig FROM familie2");
         //query
         ResultSet resultSet = ps.executeQuery();
         // Liste für Rückgabe
@@ -135,6 +135,7 @@ public class Familienverwaltung {
                 }
             } catch (SQLException ex) {
                 System.out.println("Fehler beim Finden des Mitglieds! " + ex.getMessage());
+                ex.printStackTrace();
             }
         } else if (select == 3) {
             try {
