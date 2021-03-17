@@ -6,14 +6,14 @@ public class Mitglied {
 
     private String vorname, geschlecht, svNummer;
     private boolean volljahrig;
-    private Date geburtsdatum;
+    private String geburtsdatum;
 
-    public Mitglied(String vorname, String geschlecht, String svNummer, boolean volljahrig, Date geburtsdatum) {
+    public Mitglied(String vorname, String geschlecht, String svNummer, boolean volljahrig, String geburtsdatum) {
         this.vorname = vorname;
         this.geschlecht = geschlecht;
         this.svNummer = svNummer;
         this.volljahrig = volljahrig;
-        this.geburtsdatum = geburtsdatum;
+       this.geburtsdatum = geburtsdatum;
     }
 
     public String getVorname() {
@@ -48,11 +48,11 @@ public class Mitglied {
         this.volljahrig = volljahrig;
     }
 
-    public Date getGeburtsdatum() {
+    public String getGeburtsdatum() {
         return geburtsdatum;
     }
 
-    public void setGeburtsdatum(Date geburtsdatum) {
+    public void setGeburtsdatum(String geburtsdatum) {
         this.geburtsdatum = geburtsdatum;
     }
 }

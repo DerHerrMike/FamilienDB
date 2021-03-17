@@ -5,6 +5,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Familienverwaltung {
@@ -38,13 +42,14 @@ public class Familienverwaltung {
 
         try {
             PreparedStatement ps = connection.prepareStatement(
-                    "INSERT INTO familie (vorname, geschlecht, geburtsdatum, svNummer, volljahrig) VALUES (?,?,?,?,?)");
+                    "INSERT INTO familie (vorname, geschlecht, geburtsdatum, svnummer, volljahrig) VALUES (?,?,?,?,?)");
             // werte setzen
             ps.setString(1, mitglied.getVorname());
             ps.setString(2, mitglied.getGeschlecht());
-            ps.setString(3, mitglied.getSvNummer());
-            ps.setBoolean(4, mitglied.isVolljahrig());
-            ps.setDate(5, mitglied.getGeburtsdatum());
+            ps.setString(3,  mitglied.getGeburtsdatum());
+            ps.setString(4, mitglied.getSvNummer());
+            ps.setBoolean(5, mitglied.isVolljahrig());
+
             // query
             ps.executeUpdate();
             ps.close();
@@ -68,16 +73,69 @@ public class Familienverwaltung {
                 String svN = resultSet.getString("sv-nummer");
                 String sex = resultSet.getString("geschlecht");
                 String vorname = resultSet.getString("vorname");
-                Date dob = resultSet.getDate("geburtsdatum");
+                String dob = resultSet.getString("geburtsdatum");
                 Boolean vollj = resultSet.getBoolean("volljährig");
                 // Daraus ein USer Obejkt erstellen
-                Mitglied mitglied = new Mitglied(vorname, sex, svN, vollj, (java.sql.Date) dob);
+                Mitglied mitglied = new Mitglied(vorname, sex, svN, vollj,  dob);
                 return Optional.of(mitglied);
             }
         }
         ps.close();
         return Optional.empty();
     }
+
+//    private List<Mitglied> getAllMitglieder() throws SQLException{
+//
+//    }
+//
+
+
+    private void closeConnection() {
+
+        try {
+            connection.close();
+            System.out.println("Datenbankverbindung geschlossen!");
+        } catch (SQLException ex) {
+            System.out.println("Fehler dei DB-Connection schließen " + ex.getMessage());
+        }
+    }
+
+
+    public void generateMitglied() {
+
+        boolean volljahrig;
+        int i;
+        for (i=0; i<1; i++){
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Vorname: ");
+            String vorname = scanner.nextLine();
+            System.out.println("Geschlecht: ");
+            String sex = scanner.nextLine();
+            System.out.println("Geburtsdatum in Format dd.mm.yyyy: ");
+            String dob = scanner.nextLine();
+            System.out.println("SV-Nummer (4-stellig) eingeben: ");
+            String svN = scanner.nextLine();
+            System.out.println("Ist das Mitglied volljährig? (1 für Ja, 2 für Nein): ");
+            int vj = scanner.nextInt();
+            if (vj == 1) {
+                volljahrig = true;
+            } else {
+                volljahrig = false;
+            }
+            Mitglied mitglied = new Mitglied(vorname, sex, svN, volljahrig, dob);
+            insertMitglied(mitglied);
+        }
+
+    }
+
+    public static void main(String[] args) {
+
+        Familienverwaltung familienverwaltung = new Familienverwaltung();
+        familienverwaltung.initConnection();
+        familienverwaltung.generateMitglied();
+        familienverwaltung.closeConnection();
+      }
+
 }
 
 
