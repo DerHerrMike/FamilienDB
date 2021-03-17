@@ -71,9 +71,9 @@ public class Familienverwaltung {
                 String sex = resultSet.getString("geschlecht");
                 String dob = resultSet.getString("geburtsdatum");
                 String svN = resultSet.getString("svnummer");
-                Boolean vollj = resultSet.getBoolean("volljahrig");
+                boolean vollj = resultSet.getBoolean("volljahrig");
                 // Daraus ein Mitglied Objekt erstellen
-                Mitglied mitglied = new Mitglied(vorname, sex, svN, vollj, dob);
+                Mitglied mitglied = new Mitglied(vorname, sex, dob, svN, vollj);
                 return Optional.of(mitglied);
             }
         }
@@ -97,7 +97,7 @@ public class Familienverwaltung {
             String svN = resultSet.getString("svnummer");
             boolean vollj = resultSet.getBoolean("volljahrig");
             // Daraus ein Mitglied Objekt erstellen
-            Mitglied mitglied = new Mitglied(vorname, sex, svN, vollj, dob);
+            Mitglied mitglied = new Mitglied(vorname, sex, dob, svN, vollj);
             // dieses mitglied in liste result einfügen
             result.add(mitglied);
         }
@@ -126,8 +126,10 @@ public class Familienverwaltung {
                 if (optionalMitglied.isPresent()) {
                     Mitglied mitglied = optionalMitglied.get();
                     print(mitglied);
+                    System.exit(0);
                 } else {
                     System.out.println("Mitglied nicht gefunden!");
+                    System.exit(0);
                 }
             } catch (SQLException ex) {
                 System.out.println("Fehler beim Finden des Mitglieds " + ex.getMessage());
@@ -135,12 +137,13 @@ public class Familienverwaltung {
         } else if (select == 3) {
             try {
                 List<Mitglied> mitglied = getAllMitgliederInDB();
-                for (Mitglied m : mitglied) {
+                mitglied.forEach(m -> {
                     print(m);
-                }
+
+                });
+                System.exit(0);
             } catch (SQLException ex) {
                 System.out.println("Fehler beim Auslesen aller User " + ex.getMessage());
-                return;
             }
         } else {
             System.out.println("Keine mögliche Auswahl getroffen. Das Programm wird beendet!");
@@ -180,10 +183,9 @@ public class Familienverwaltung {
             System.out.println("Ist das Mitglied volljährig? (1 für Ja, 2 für Nein): ");
             int vj = scanner.nextInt();
             volljahrig = vj == 1;
-            Mitglied mitglied = new Mitglied(vorname, sex, svN, volljahrig, dob);
+            Mitglied mitglied = new Mitglied(vorname, sex, dob, svN, volljahrig);
             insertMitglied(mitglied);
         }
-
     }
 
     public static void main(String[] args) throws SQLException {

@@ -4,16 +4,18 @@ import java.sql.Date;
 
 public class Mitglied {
 
-    private String vorname, geschlecht, svNummer;
-    private boolean volljahrig;
+    private String vorname, geschlecht;
     private String geburtsdatum;
+    private String svNummer;
+    private boolean volljahrig;
 
-    public Mitglied(String vorname, String geschlecht, String svNummer, boolean volljahrig, String geburtsdatum) {
+
+    public Mitglied(String vorname, String geschlecht, String geburtsdatum, String svNummer, boolean volljahrig) {
         this.vorname = vorname;
         this.geschlecht = geschlecht;
+        this.geburtsdatum = geburtsdatum;
         this.svNummer = svNummer;
         this.volljahrig = volljahrig;
-       this.geburtsdatum = geburtsdatum;
     }
 
     public String getVorname() {
