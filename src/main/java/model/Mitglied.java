@@ -4,13 +4,15 @@ import java.sql.Date;
 
 public class Mitglied {
 
+    private int id;
     private String vorname, geschlecht;
     private String geburtsdatum;
     private String svNummer;
-    private boolean volljahrig;
+    private int volljahrig;
 
 
-    public Mitglied(String vorname, String geschlecht, String geburtsdatum, String svNummer, boolean volljahrig) {
+    public Mitglied(int id, String vorname, String geschlecht, String geburtsdatum, String svNummer,int volljahrig) {
+        this.id = id;
         this.vorname = vorname;
         this.geschlecht = geschlecht;
         this.geburtsdatum = geburtsdatum;
@@ -42,11 +44,11 @@ public class Mitglied {
         this.svNummer = svNummer;
     }
 
-    public boolean isVolljahrig() {
+    public int isVolljahrig() {
         return volljahrig;
     }
 
-    public void setVolljahrig(boolean volljahrig) {
+    public void setVolljahrig(int volljahrig) {
         this.volljahrig = volljahrig;
     }
 
@@ -56,5 +58,17 @@ public class Mitglied {
 
     public void setGeburtsdatum(String geburtsdatum) {
         this.geburtsdatum = geburtsdatum;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getVolljahrig() {
+        return volljahrig;
     }
 }
