@@ -82,6 +82,18 @@ public class Familienverwaltung {
         return Optional.empty();
     }
 
+    private void changeVollj(int id) throws SQLException {
+
+        PreparedStatement ps = connection.prepareStatement("UPDATE familie2 SET Volljahrig = Volljahrig + 1 WHERE id = ?");
+      try (ps){
+          ps.setInt(1, id);
+          ps.executeUpdate();
+          System.out.println("Die Volljährigkeit wurde für ID "+id+" angepasst!");
+          System.out.println();
+          System.out.println("Das Programm wird beendet.");
+          System.exit(0);
+      }
+    }
 
     private void deleteMitgliedBySVNr(int sozi) throws SQLException {
 
@@ -92,6 +104,9 @@ public class Familienverwaltung {
         }
         ps.close();
         System.out.println("Mitglied mit SVNr. " + sozi + " gelöscht!");
+        System.out.println();
+        System.out.println("Das Programm wird beendet.");
+        System.exit(0);
     }
 
 
@@ -125,7 +140,7 @@ public class Familienverwaltung {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Willkommen in der Familienverwaltung!");
         System.out.println();
-        System.out.println("Bitte Auswahl treffen: 1 Mitglied hinzufügen, 2 Mitglied über ID suchen, 3 alle Mitglieder ausgeben, 4 über SVNr löschen: ");
+        System.out.println("Bitte Auswahl treffen: 1 Mitglied hinzufügen, 2 Mitglied über ID suchen, 3 alle Mitglieder ausgeben, 4 über SVNr löschen, 5 Volljährigkeit anpassen: ");
         int select = scanner.nextInt();
         scanner.nextLine();
         switch (select) {
@@ -135,7 +150,7 @@ public class Familienverwaltung {
                 break;
             case 2:
 
-                System.out.println("Bitte die ID eingben: ");
+                System.out.println("Bitte die ID eingeben: ");
                 int idSELECT = scanner.nextInt();
                 scanner.nextLine();
                 try {
@@ -179,14 +194,35 @@ public class Familienverwaltung {
                     System.exit(0);
                 }
 
+            case 5:
+
+                System.out.println("Gib die ID des Mitglieds ein, dessen Status du ändern willst: ");
+                idSELECT = scanner.nextInt();
+                scanner.nextLine();
+                try {
+                    Optional<Mitglied> optionalMitglied = getMitgliedByID(idSELECT);
+                    if (optionalMitglied.isPresent()) {
+                        changeVollj(idSELECT);
+                        break;
+                    } else {
+                        System.out.println("Mitglied nicht gefunden!");
+                        System.exit(0);
+                    }
+                } catch (SQLException ex) {
+                    System.out.println("Fehler beim Finden des Mitglieds! " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+
+
             default:
                 System.out.println("Keine mögliche Auswahl getroffen. Das Programm wird beendet!");
                 System.exit(0);
         }
     }
 
+
     private void print(Mitglied mitglied) {
-        System.out.printf("%s %s \n", mitglied.getSvNummer(), mitglied.getVorname());
+        System.out.printf("%d %s %s \n", mitglied.getId(), mitglied.getVorname(), mitglied.getSvNummer());
     }
 
     private void closeConnection() {
