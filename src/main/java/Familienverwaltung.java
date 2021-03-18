@@ -1,6 +1,5 @@
 import com.mysql.cj.jdbc.MysqlDataSource;
 import model.Mitglied;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -83,6 +82,19 @@ public class Familienverwaltung {
         return Optional.empty();
     }
 
+
+    private void deleteMitgliedBySVNr(int sozi) throws SQLException {
+
+        PreparedStatement ps = connection.prepareStatement("DELETE FROM `schwingi`.`familie2` WHERE `familie2`.`SVNummer` = ?");
+        try (ps) {
+            ps.setInt(1, sozi);
+            ps.executeUpdate();
+        }
+        ps.close();
+        System.out.println("Mitglied mit SVNr. " + sozi + " gelöscht!");
+    }
+
+
     private List<Mitglied> getAllMitgliederInDB() throws SQLException {
 
         PreparedStatement ps = connection.prepareStatement("SELECT id, vorname, geschlecht, geburtsdatum, svnummer, volljahrig FROM familie2");
@@ -113,43 +125,63 @@ public class Familienverwaltung {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Willkommen in der Familienverwaltung!");
         System.out.println();
-        System.out.println("Bitte Auswahl treffen: 1 Mitglied hinzufügen, 2 Mitglied über SV-Nummer suchen, 3 alle Mitglieder ausgeben: ");
+        System.out.println("Bitte Auswahl treffen: 1 Mitglied hinzufügen, 2 Mitglied über ID suchen, 3 alle Mitglieder ausgeben, 4 über SVNr löschen: ");
         int select = scanner.nextInt();
         scanner.nextLine();
-        if (select == 1) {
-            generateMitglied();
+        switch (select) {
+            case 1:
+                generateMitglied();
 
-        } else if (select == 2) {
+                break;
+            case 2:
 
-            System.out.println("Bitte die ID eingben: ");
-            int idSELECT = scanner.nextInt();
-            try {
-                Optional<Mitglied> optionalMitglied = getMitgliedByID(idSELECT);
-                if (optionalMitglied.isPresent()) {
-                    Mitglied mitglied = optionalMitglied.get();
-                    print(mitglied);
+                System.out.println("Bitte die ID eingben: ");
+                int idSELECT = scanner.nextInt();
+                scanner.nextLine();
+                try {
+                    Optional<Mitglied> optionalMitglied = getMitgliedByID(idSELECT);
+                    if (optionalMitglied.isPresent()) {
+                        Mitglied mitglied = optionalMitglied.get();
+                        print(mitglied);
+                        System.exit(0);
+                    } else {
+                        System.out.println("Mitglied nicht gefunden!");
+                        System.exit(0);
+                    }
+                } catch (SQLException ex) {
+                    System.out.println("Fehler beim Finden des Mitglieds! " + ex.getMessage());
+                    ex.printStackTrace();
+                }
+                break;
+            case 3:
+                try {
+                    List<Mitglied> mitglied = getAllMitgliederInDB();
+                    for (Mitglied m : mitglied) {
+                        print(m);
+                    }
                     System.exit(0);
+                } catch (SQLException ex) {
+                    System.out.println("Fehler beim Auslesen aller User " + ex.getMessage());
+                }
+                break;
+            case 4:
+
+                System.out.println("Bitte die SVNummer des zu löschenden Mitglieds eingeben: ");
+                int svSelect = scanner.nextInt();
+                scanner.nextLine();
+                System.out.println("Achtung: Mitglied wird aus DB gelöscht! Fortfahren (j/n): ");
+                String delete = scanner.nextLine();
+                if (delete.equals("j")) {
+                    deleteMitgliedBySVNr(svSelect);
+                    break;
                 } else {
-                    System.out.println("Mitglied nicht gefunden!");
+                    System.out.println("Vorgang abgebrochen!");
                     System.exit(0);
                 }
-            } catch (SQLException ex) {
-                System.out.println("Fehler beim Finden des Mitglieds! " + ex.getMessage());
-                ex.printStackTrace();
-            }
-        } else if (select == 3) {
-            try {
-                List<Mitglied> mitglied = getAllMitgliederInDB();
-                for (Mitglied m : mitglied) {
-                    print(m);
-                }
+
+            default:
+                System.out.println("Keine mögliche Auswahl getroffen. Das Programm wird beendet!");
                 System.exit(0);
-            } catch (SQLException ex) {
-                System.out.println("Fehler beim Auslesen aller User " + ex.getMessage());
-            }
-        } else {
-            System.out.println("Keine mögliche Auswahl getroffen. Das Programm wird beendet!");
-            System.exit(0);
         }
     }
 
