@@ -33,6 +33,39 @@ public class Familienverwaltung {
         }
     }
 
+    private void closeConnection() {
+
+        try {
+            connection.close();
+            System.out.println("Datenbankverbindung geschlossen!");
+        } catch (SQLException ex) {
+            System.out.println("Fehler dei DB-Connection schließen " + ex.getMessage());
+        }
+    }
+
+    public void generateMitglied() {
+
+        int i;
+        for (i = 0; i < 1; i++) {
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("ID: ");
+            int id = scanner.nextInt();
+            scanner.nextLine();
+            System.out.println("Vorname: ");
+            String vorname = scanner.nextLine();
+            System.out.println("Geschlecht: ");
+            String sex = scanner.nextLine();
+            System.out.println("Geburtsdatum in Format dd.mm.yyyy: ");
+            String dob = scanner.nextLine();
+            System.out.println("SV-Nummer (4-stellig) eingeben: ");
+            String svN = scanner.nextLine();
+            System.out.println("Ist das Mitglied volljährig? (1 für Ja, 0 für Nein): ");
+            int vollj = scanner.nextInt();
+            Mitglied mitglied = new Mitglied(id, vorname, sex, dob, svN, vollj);
+            insertMitglied(mitglied);
+        }
+    }
+
     private void insertMitglied(Mitglied mitglied) {
 
         try {
@@ -56,6 +89,31 @@ public class Familienverwaltung {
             System.out.println("Fehler beim Einfügen! " + ex.getMessage());
             ex.printStackTrace();
         }
+    }
+
+    private List<Mitglied> getAllMitgliederInDB() throws SQLException {
+
+        PreparedStatement ps = connection.prepareStatement("SELECT id, vorname, geschlecht, geburtsdatum, svnummer, volljahrig FROM familie2");
+        //query
+        ResultSet resultSet = ps.executeQuery();
+        // Liste für Rückgabe
+        List<Mitglied> result = new ArrayList<>();
+        // Zeile für Zeile result abarbeiten solange es ein next gibt
+        while (resultSet.next()) {
+            // Einzelne Werte vom Datensatz holen
+            int id = resultSet.getInt("id");
+            String vorname = resultSet.getString("vorname");
+            String sex = resultSet.getString("geschlecht");
+            String dob = resultSet.getString("geburtsdatum");
+            String svN = resultSet.getString("svnummer");
+            int vollj = resultSet.getInt("volljahrig");
+            // Daraus ein Mitglied Objekt erstellen
+            Mitglied mitglied = new Mitglied(id, vorname, sex, dob, svN, vollj);
+            // dieses mitglied in liste result einfügen
+            result.add(mitglied);
+        }
+        ps.close();
+        return result;
     }
 
     private Optional<Mitglied> getMitgliedByID(int id) throws SQLException {
@@ -85,14 +143,14 @@ public class Familienverwaltung {
     private void changeVollj(int id) throws SQLException {
 
         PreparedStatement ps = connection.prepareStatement("UPDATE familie2 SET Volljahrig = Volljahrig + 1 WHERE id = ?");
-      try (ps){
-          ps.setInt(1, id);
-          ps.executeUpdate();
-          System.out.println("Die Volljährigkeit wurde für ID "+id+" angepasst!");
-          System.out.println();
-          System.out.println("Das Programm wird beendet.");
-          System.exit(0);
-      }
+        try (ps) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+            System.out.println("Die Volljährigkeit wurde für ID " + id + " angepasst!");
+            System.out.println();
+            System.out.println("Das Programm wird beendet.");
+            System.exit(0);
+        }
     }
 
     private void deleteMitgliedBySVNr(int sozi) throws SQLException {
@@ -110,46 +168,27 @@ public class Familienverwaltung {
     }
 
 
-    private List<Mitglied> getAllMitgliederInDB() throws SQLException {
-
-        PreparedStatement ps = connection.prepareStatement("SELECT id, vorname, geschlecht, geburtsdatum, svnummer, volljahrig FROM familie2");
-        //query
-        ResultSet resultSet = ps.executeQuery();
-        // Liste für Rückgabe
-        List<Mitglied> result = new ArrayList<>();
-        // Zeile für Zeile result abarbeiten solange es ein next gibt
-        while (resultSet.next()) {
-            // Einzelne Werte vom Datensatz holen
-            int id = resultSet.getInt("id");
-            String vorname = resultSet.getString("vorname");
-            String sex = resultSet.getString("geschlecht");
-            String dob = resultSet.getString("geburtsdatum");
-            String svN = resultSet.getString("svnummer");
-            int vollj = resultSet.getInt("volljahrig");
-            // Daraus ein Mitglied Objekt erstellen
-            Mitglied mitglied = new Mitglied(id, vorname, sex, dob, svN, vollj);
-            // dieses mitglied in liste result einfügen
-            result.add(mitglied);
-        }
-        ps.close();
-        return result;
-    }
-
     private void verwaltung() throws SQLException {
 
         Scanner scanner = new Scanner(System.in);
         System.out.println("Willkommen in der Familienverwaltung!");
         System.out.println();
-        System.out.println("Bitte Auswahl treffen: 1 Mitglied hinzufügen, 2 Mitglied über ID suchen, 3 alle Mitglieder ausgeben, 4 über SVNr löschen, 5 Volljährigkeit anpassen: ");
+        System.out.println("1: Mitglied hinzufügen");
+        System.out.println("2: Mitglied über ID suchen");
+        System.out.println("3: alle Mitglieder ausgeben");
+        System.out.println("4: Mitglied über SVNr löschen");
+        System.out.println("5: Volljährigkeit anpassen");
+        System.out.println();
+        System.out.println("Bitte Auswahl (1-5) treffen: ");
         int select = scanner.nextInt();
         scanner.nextLine();
         switch (select) {
+
             case 1:
                 generateMitglied();
-
                 break;
-            case 2:
 
+            case 2:
                 System.out.println("Bitte die ID eingeben: ");
                 int idSELECT = scanner.nextInt();
                 scanner.nextLine();
@@ -168,19 +207,23 @@ public class Familienverwaltung {
                     ex.printStackTrace();
                 }
                 break;
+
             case 3:
                 try {
+                    System.out.println();
                     List<Mitglied> mitglied = getAllMitgliederInDB();
                     for (Mitglied m : mitglied) {
                         print(m);
                     }
+                    System.out.println();
+                    System.out.println("Alle Mitglieder ausgegeben, Programm wird beendet.");
                     System.exit(0);
                 } catch (SQLException ex) {
                     System.out.println("Fehler beim Auslesen aller User " + ex.getMessage());
                 }
                 break;
-            case 4:
 
+            case 4:
                 System.out.println("Bitte die SVNummer des zu löschenden Mitglieds eingeben: ");
                 int svSelect = scanner.nextInt();
                 scanner.nextLine();
@@ -195,7 +238,6 @@ public class Familienverwaltung {
                 }
 
             case 5:
-
                 System.out.println("Gib die ID des Mitglieds ein, dessen Status du ändern willst: ");
                 idSELECT = scanner.nextInt();
                 scanner.nextLine();
@@ -215,7 +257,7 @@ public class Familienverwaltung {
 
 
             default:
-                System.out.println("Keine mögliche Auswahl getroffen. Das Programm wird beendet!");
+                System.out.println("Keine gültige Auswahl getroffen. Das Programm wird beendet!");
                 System.exit(0);
         }
     }
@@ -223,40 +265,6 @@ public class Familienverwaltung {
 
     private void print(Mitglied mitglied) {
         System.out.printf("%d %s %s \n", mitglied.getId(), mitglied.getVorname(), mitglied.getSvNummer());
-    }
-
-    private void closeConnection() {
-
-        try {
-            connection.close();
-            System.out.println("Datenbankverbindung geschlossen!");
-        } catch (SQLException ex) {
-            System.out.println("Fehler dei DB-Connection schließen " + ex.getMessage());
-        }
-    }
-
-
-    public void generateMitglied() {
-
-        int i;
-        for (i = 0; i < 1; i++) {
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("ID: ");
-            int id = scanner.nextInt();
-            scanner.nextLine();
-            System.out.println("Vorname: ");
-            String vorname = scanner.nextLine();
-            System.out.println("Geschlecht: ");
-            String sex = scanner.nextLine();
-            System.out.println("Geburtsdatum in Format dd.mm.yyyy: ");
-            String dob = scanner.nextLine();
-            System.out.println("SV-Nummer (4-stellig) eingeben: ");
-            String svN = scanner.nextLine();
-            System.out.println("Ist das Mitglied volljährig? (1 für Ja, 0 für Nein): ");
-            int vollj = scanner.nextInt();
-            Mitglied mitglied = new Mitglied(id, vorname, sex, dob, svN, vollj);
-            insertMitglied(mitglied);
-        }
     }
 
     public static void main(String[] args) throws SQLException {
